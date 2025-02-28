@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>永远的好朋友</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-image: url('https://p9-bot-sign.byteimg.com/tos-cn-i-v4nquku3lp/787745f07e6a4f04935ac56c9aff6296.jpg~tplv-v4nquku3lp-image.image?rk3s=68e6b6b5&x-expires=1743354304&x-signature=8t7fN6WL9BzKFwWTGZGfensv0Xg%3D');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-color: #FFE4E1; /* 粉嫩背景色 */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        h1 {
+            color: #FF1493; /* 可爱粉色标题 */
+            text-align: center;
+        }
+
+        #friendshipContainer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: rgba(255, 224, 225, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+
+        #memoryInput {
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #FF69B4;
+            border-radius: 5px;
+        }
+
+        #addMemoryButton {
+            background-color: #FFB6C1; /* 粉色按钮 */
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #memoryList {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        #memoryList li {
+            background-color: #FFEFD5;
+            padding: 10px;
+            margin: 5px;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+
+        #deleteButton {
+            background-color: #FF69B4;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>永远的好朋友</h1>
+    <div id="friendshipContainer">
+        <input type="text" id="memoryInput" placeholder="输入一段你们的友谊回忆">
+        <button id="addMemoryButton">添加回忆</button>
+        <ul id="memoryList"></ul>
+    </div>
+
+    <script>
+        const memoryList = document.getElementById('memoryList');
+        const addMemoryButton = document.getElementById('addMemoryButton');
+        const memoryInput = document.getElementById('memoryInput');
+
+        addMemoryButton.addEventListener('click', function () {
+            const memory = memoryInput.value;
+            if (memory) {
+                const listItem = document.createElement('li');
+                listItem.textContent = memory;
+
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = '删除';
+                deleteButton.id = 'deleteButton';
+                deleteButton.addEventListener('click', function () {
+                    memoryList.removeChild(listItem);
+                });
+
+                listItem.appendChild(deleteButton);
+                memoryList.appendChild(listItem);
+                memoryInput.value = '';
+            }
+        });
+    </script>
+</body>
+
+</html>
