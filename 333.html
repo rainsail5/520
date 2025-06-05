@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>以"传媒"为关键词的可视化分析</title>
+    <!-- 引入Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入Font Awesome -->
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <!-- 引入Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+    <!-- 配置Tailwind自定义主题 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                        secondary: '#64748b',
+                        accent: '#0ea5e9',
+                        neutral: '#f1f5f9',
+                        'neutral-dark': '#334155',
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'card': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                        'card-hover': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                    }
+                },
+            }
+        }
+    </script>
+    <!-- 自定义工具类 -->
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .card-gradient {
+                background: linear-gradient(145deg, #ffffff, #e6e6e6);
+            }
+            .text-shadow {
+                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            }
+            .animate-float {
+                animation: float 6s ease-in-out infinite;
+            }
+            @keyframes float {
+                0% { transform: translateY(0px); }
+                50% { transform: translateY(-10px); }
+                100% { transform: translateY(0px); }
+            }
+        }
+    </style>
+</head>
+<body class="font-inter bg-gray-50 text-gray-800">
+    <!-- 导航栏 -->
+    <header class="sticky top-0 z-50 bg-white/90 backdrop-blur-sm shadow-sm transition-all duration-300">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fa fa-line-chart text-primary text-2xl"></i>
+                <h1 class="text-xl font-bold text-primary">传媒数据分析平台</h1>
+            </div>
+            <nav class="hidden md:flex space-x-6">
+                <a href="#top" class="text-gray-600 hover:text-primary transition-colors duration-200 font-medium">首页</a>
+                <a href="#videos" class="text-gray-600 hover:text-primary transition-colors duration-200 font-medium">热门视频</a>
+                <a href="#sentiment" class="text-gray-600 hover:text-primary transition-colors duration-200 font-medium">情感分析</a>
+                <a href="#wordcloud" class="text-gray-600 hover:text-primary transition-colors duration-200 font-medium">词云分析</a>
+                <a href="#correlation" class="text-gray-600 hover:text-primary transition-colors duration-200 font-medium">相关性分析</a>
+            </nav>
+            <button class="md:hidden text-gray-600 focus:outline-none" id="mobile-menu-button">
+                <i class="fa fa-bars text-xl"></i>
+            </button>
+        </div>
+        <!-- 移动端菜单 -->
+        <div class="md:hidden hidden bg-white shadow-lg absolute w-full" id="mobile-menu">
+            <div class="container mx-auto px-4 py-3 flex flex-col space-y-3">
+                <a href="#top" class="text-gray-600 hover:text-primary transition-colors duration-200 font-medium py-2 border-b border-gray-100">首页</a>
+                <a href="#videos" class="text-gray-600 hover:text-primary transition-colors duration-200 font-medium py-2 border-b border-gray-100">热门视频</a>
+                <a href="#sentiment" class="text-gray-600 hover:text-primary transition-colors duration-200 font-medium py-2 border-b border-gray-100">情感分析</a>
+                <a href="#wordcloud" class="text-gray-600 hover:text-primary transition-colors duration-200 font-medium py-2 border-b border-gray-100">词云分析</a>
+                <a href="#correlation" class="text-gray-600 hover:text-primary transition-colors duration-200 font-medium py-2">相关性分析</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- 英雄区 -->
+    <section id="top" class="relative bg-gradient-to-br from-primary/90 to-accent/90 text-white py-16 md:py-24 overflow-hidden">
+        <div class="absolute inset-0 bg-[url('https://picsum.photos/id/1/1920/1080')] bg-cover bg-center opacity-10"></div>
+        <div class="container mx-auto px-4 relative z-10">
+            <div class="max-w-3xl">
+                <h1 class="text-[clamp(2rem,5vw,3.5rem)] font-bold leading-tight text-shadow mb-4">
+                    以"传媒"为关键词的可视化分析
+                </h1>
+                <p class="text-xl md:text-2xl mb-8 text-white/90">
+                    深入解析传媒领域数据，洞察行业趋势与用户情感
+                </p>
+                <div class="flex flex-wrap gap-4">
+                    <a href="#videos" class="px-6 py-3 bg-white text-primary rounded-lg font-medium shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                        查看热门视频
+                    </a>
+                    <a href="#sentiment" class="px-6 py-3 bg-white/20 text-white rounded-lg font-medium backdrop-blur-sm hover:bg-white/30 transition-all duration-300 transform hover:-translate-y-1">
+                        分析情感趋势
+                    </a>
+                </div>
+            </div>
+        </div>
+        <!-- 装饰元素 -->
+        <div class="absolute bottom-0 left-0 w-full h-16 bg-gradient-to-t from-gray-50 to-transparent"></div>
+    </section>
+
+    <!-- 数据概览 -->
+    <section class="py-12 bg-white">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-all duration-300 border border-gray-100 transform hover:-translate-y-1">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-700">分析视频总数</h3>
+                        <i class="fa fa-video-camera text-primary text-2xl"></i>
+                    </div>
+                    <p class="text-3xl font-bold text-gray-800">1,245</p>
+                    <p class="text-sm text-gray-500 mt-1">较上月增长 12.5%</p>
+                </div>
+                
+                <div class="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-all duration-300 border border-gray-100 transform hover:-translate-y-1">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-700">总播放量</h3>
+                        <i class="fa fa-eye text-primary text-2xl"></i>
+                    </div>
+                    <p class="text-3xl font-bold text-gray-800">32.8M</p>
+                    <p class="text-sm text-gray-500 mt-1">较上月增长 8.2%</p>
+                </div>
+                
+                <div class="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-all duration-300 border border-gray-100 transform hover:-translate-y-1">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-700">平均情感得分</h3>
+                        <i class="fa fa-smile-o text-primary text-2xl"></i>
+                    </div>
+                    <p class="text-3xl font-bold text-gray-800">78.3</p>
+                    <p class="text-sm text-gray-500 mt-1">较上月增长 3.1%</p>
+                </div>
+                
+                <div class="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-all duration-300 border border-gray-100 transform hover:-translate-y-1">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-700">关键词频率</h3>
+                        <i class="fa fa-tags text-primary text-2xl"></i>
+                    </div>
+                    <p class="text-3xl font-bold text-gray-800">4,231</p>
+                    <p class="text-sm text-gray-500 mt-1">较上月增长 15.7%</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 播放量最高的10个视频 -->
+    <section id="videos" class="py-16 bg-gray-50">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row md:items-end justify-between mb-10">
+                <div>
+                    <h2 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-gray-800 mb-3">播放量最高的10个视频</h2>
+                    <p class="text-gray-600 max-w-2xl">这些视频在近期获得了最高的关注度，反映了当前传媒领域的热门话题和趋势。</p>
+                </div>
+                <div class="mt-4 md:mt-0">
+                    <select id="video-time-filter" class="px-4 py-2 border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
+                        <option value="week">最近一周</option>
+                        <option value="month" selected>最近一月</option>
+                        <option value="quarter">最近一季度</option>
+                        <option value="year">最近一年</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-card p-6 md:p-8">
+                <!-- 新增：top播放量示意图 -->
+                <div class="h-[400px] w-full flex items-center justify-center bg-gray-50 rounded-lg overflow-hidden relative mb-8">
+                    <img src="top.jpg" alt="播放量最高的10个视频示意图" class="max-h-full object-contain">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300 flex items-end">
+                        <div class="p-6 text-white">
+                            <h4 class="font-bold text-lg mb-2">播放量最高的10个视频</h4>
+                            <p class="text-sm">展示了近期播放量最高的视频及其相关数据，反映了当前传媒领域的热门话题和趋势。</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 保留原图表 -->
+                <div class="h-[400px] w-full">
+                    <canvas id="videoBarChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 情感分析部分 -->
+    <section id="sentiment" class="py-16 bg-white">
+        <div class="container mx-auto px-4">
+            <h2 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-gray-800 mb-3">标题情感分析</h2>
+            <p class="text-gray-600 max-w-2xl mb-10">通过自然语言处理技术分析视频标题的情感倾向，了解观众对传媒内容的情感态度。</p>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- 情感分数分布 - 替换为图片 -->
+                <div class="bg-white rounded-xl shadow-card p-6 md:p-8">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                        <i class="fa fa-bar-chart text-primary mr-2"></i> 情感分数分布
+                    </h3>
+                    <div class="h-[400px] w-full flex items-center justify-center bg-gray-50 rounded-lg overflow-hidden relative">
+                        <img src="qgpf.html" alt="情感分数分布" class="max-h-full object-contain">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300 flex items-end">
+                            <div class="p-6 text-white">
+                                <h4 class="font-bold text-lg mb-2">情感分数分布</h4>
+                                <p class="text-sm">展示了视频标题情感分数的分布情况，反映了观众对传媒内容的整体情感态度。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 情感分布饼图 -->
+                <div class="bg-white rounded-xl shadow-card p-6 md:p-8">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                        <i class="fa fa-pie-chart text-primary mr-2"></i> 情感分类分布
+                    </h3>
+                    <div class="h-[350px] w-full flex items-center justify-center">
+                        <canvas id="sentimentPieChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 词云分析 -->
+    <section id="wordcloud" class="py-16 bg-gray-50">
+        <div class="container mx-auto px-4">
+            <h2 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-gray-800 mb-3">标题词云图</h2>
+            <p class="text-gray-600 max-w-2xl mb-10">词云图展示了视频标题中出现频率较高的关键词，反映了当前传媒内容的热点话题。</p>
+            
+            <div class="bg-white rounded-xl shadow-card p-6 md:p-8">
+                <div class="h-[400px] w-full flex items-center justify-center bg-gray-50 rounded-lg overflow-hidden relative">
+                    <!-- 新增：词云图 -->
+                    <img src="cyt.jpg" alt="标题词云图" class="max-h-full object-contain">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300 flex items-end">
+                        <div class="p-6 text-white">
+                            <h4 class="font-bold text-lg mb-2">热门关键词分析</h4>
+                            <p class="text-sm">主要包括"新媒体"、"传播"、"内容创作"、"数字化"等主题词，反映了当前传媒行业的发展趋势。</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-6 flex flex-wrap gap-2">
+                    <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">新媒体</span>
+                    <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">传播</span>
+                    <span class="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">内容创作</span>
+                    <span class="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm">数字化</span>
+                    <span class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm">社交媒体</span>
+                    <span class="px-3 py-1 bg-pink-100 text-pink-800 rounded-full text-sm">影响力</span>
+                    <span class="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm">观众互动</span>
+                    <span class="px-3 py-1 bg-teal-100 text-teal-800 rounded-full text-sm">数据分析</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 相关性分析 -->
+    <section id="correlation" class="py-16 bg-white">
+        <div class="container mx-auto px-4">
+            <h2 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-gray-800 mb-3">播放量与其他指标的相关性</h2>
+            <p class="text-gray-600 max-w-2xl mb-10">分析播放量与点赞数、评论数、分享数等指标之间的相关性，帮助理解用户行为模式。</p>
+            
+            <div class="bg-white rounded-xl shadow-card p-6 md:p-8">
+                <!-- 新增：相关性分析图 -->
+                <div class="h-[400px] w-full flex items-center justify-center bg-gray-50 rounded-lg overflow-hidden relative mb-8">
+                    <img src="xgx.jpg" alt="播放量与其他指标的相关性" class="max-h-full object-contain">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300 flex items-end">
+                        <div class="p-6 text-white">
+                            <h4 class="font-bold text-lg mb-2">相关性分析</h4>
+                            <p class="text-sm">分析了播放量与点赞数、评论数、分享数等指标之间的相关性，揭示了用户行为模式和内容传播规律。</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 保留原热力图 -->
+                <div class="h-[400px] w-full">
+                    <canvas id="correlationHeatmap"></canvas>
+                </div>
+                <div class="mt-6 bg-gray-50 rounded-lg p-4">
+                    <h4 class="font-semibold text-gray-800 mb-2">相关性分析解读</h4>
+                    <ul class="list-disc pl-5 text-gray-600 space-y-1">
+                        <li>播放量与评论数呈现强正相关（相关系数0.82），表明观众参与度高的内容更容易获得高播放量</li>
+                        <li>点赞数与分享数之间的相关性为0.75，说明用户更倾向于分享他们喜欢的内容</li>
+                        <li>情感得分与播放量的相关性较弱（0.31），表明情感倾向对播放量影响有限</li>
+                        <li>视频时长与播放量呈负相关（-0.42），较短的视频更容易获得高播放量</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 趋势分析 -->
+    <section class="py-16 bg-gray-50">
+        <div class="container mx-auto px-4">
+            <h2 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-gray-800 mb-3">传媒行业趋势分析</h2>
+            <p class="text-gray-600 max-w-2xl mb-10">基于数据分析，揭示传媒行业的发展趋势和未来方向。</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- 趋势卡片1 -->
+                <div class="bg-white rounded-xl shadow-card p-6 md:p-8 border-l-4 border-primary hover:shadow-card-hover transition-all duration-300 transform hover:-translate-y-1">
+                    <div class="flex items-start justify-between mb-4">
+                        <h3 class="text-xl font-semibold text-gray-800">短视频主导</h3>
+                        <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                            <i class="fa fa-film"></i>
+                        </div>
+                    </div>
+                    <p class="text-gray-600 mb-4">短视频内容持续主导传媒市场，用户观看时长增长了42%，成为最主要的内容消费形式。</p>
+                    <div class="w-full bg-gray-200 rounded-full h-2 mb-2">
+                        <div class="bg-primary h-2 rounded-full" style="width: 78%"></div>
+                    </div>
+                    <p class="text-sm text-gray-500">增长趋势：78% 年增长率</p>
+                </div>
+                
+                <!-- 趋势卡片2 -->
+                <div class="bg-white rounded-xl shadow-card p-6 md:p-8 border-l-4 border-green-500 hover:shadow-card-hover transition-all duration-300 transform hover:-translate-y-1">
+                    <div class="flex items-start justify-between mb-4">
+                        <h3 class="text-xl font-semibold text-gray-800">AI技术应用</h3>
+                        <div class="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center text-green-500">
+                            <i class="fa fa-robot"></i>
+                        </div>
+                    </div>
+                    <p class="text-gray-600 mb-4">AI技术在内容创作、分发和推荐中的应用显著提升，使用率同比增长65%。</p>
+                    <div class="w-full bg-gray-200 rounded-full h-2 mb-2">
+                        <div class="bg-green-500 h-2 rounded-full" style="width: 65%"></div>
+                    </div>
+                    <p class="text-sm text-gray-500">增长趋势：65% 年增长率</p>
+                </div>
+                
+                <!-- 趋势卡片3 -->
+                <div class="bg-white rounded-xl shadow-card p-6 md:p-8 border-l-4 border-purple-500 hover:shadow-card-hover transition-all duration-300 transform hover:-translate-y-1">
+                    <div class="flex items-start justify-between mb-4">
+                        <h3 class="text-xl font-semibold text-gray-800">互动内容崛起</h3>
+                        <div class="w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center text-purple-500">
+                            <i class="fa fa-comments"></i>
+                        </div>
+                    </div>
+                    <p class="text-gray-600 mb-4">互动式内容（如直播、问答、投票）的用户参与度是传统内容的3倍，成为新的增长热点。</p>
+                    <div class="w-full bg-gray-200 rounded-full h-2 mb-2">
+                        <div class="bg-purple-500 h-2 rounded-full" style="width: 92%"></div>
+                    </div>
+                    <p class="text-sm text-gray-500">增长趋势：92% 年增长率</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer class="bg-gray-800 text-white py-12">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <div class="flex items-center space-x-2 mb-4">
+                        <i class="fa fa-line-chart text-primary text-2xl"></i>
+                        <h3 class="text-xl font-bold">传媒数据分析平台</h3>
+                    </div>
+                    <p class="text-gray-400 mb-4">基于大数据分析，为传媒行业提供专业的数据洞察和决策支持。</p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors duration-200">
+                            <i class="fa fa-weibo"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors duration-200">
+                            <i class="fa fa-wechat"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors duration-200">
+                            <i class="fa fa-twitter"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors duration-200">
+                            <i class="fa fa-linkedin"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">快速链接</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#top" class="text-gray-400 hover:text-white transition-colors duration-200">首页</a></li>
+                        <li><a href="#videos" class="text-gray-400 hover:text-white transition-colors duration-200">热门视频</a></li>
+                        <li><a href="#sentiment" class="text-gray-400 hover:text-white transition-colors duration-200">情感分析</a></li>
+                        <li><a href="#wordcloud" class="text-gray-400 hover:text-white transition-colors duration-200">词云分析</a></li>
+                        <li><a href="#correlation" class="text-gray-400 hover:text-white transition-colors duration-200">相关性分析</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">相关资源</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors duration-200">行业报告</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors duration-200">数据分析工具</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors duration-200">API接口</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors duration-200">使用文档</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors duration-200">常见问题</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">联系我们</h4>
+                    <ul class="space-y-2">
+                        <li class="flex items-center">
+                            <i class="fa fa-envelope-o text-primary mr-2"></i>
+                            <a href="mailto:contact@mediadata.com" class="text-gray-400 hover:text-white transition-colors duration-200">contact@mediadata.com</a>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fa fa-phone text-primary mr-2"></i>
+                            <a href="tel:+8610123456789" class="text-gray-400 hover:text-white transition-colors duration-200">+86 (10) 1234-5678</a>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fa fa-map-marker text-primary mr-2"></i>
+                            <span class="text-gray-400">北京市朝阳区传媒大道8号</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
+                <p>&copy; 2025 传媒数据分析平台. 保留所有权利.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        // 移动端菜单切换
+        document.getElementById('mobile-menu-button').addEventListener('click', function() {
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // 平滑滚动
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                
+                if (targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 80,
+                        behavior: 'smooth'
+                    });
+                    
+                    // 关闭移动菜单
+                    if (!document.getElementById('mobile-menu').classList.contains('hidden')) {
+                        document.getElementById('mobile-menu').classList.add('hidden');
+                    }
+                }
+            });
+        });
+
+        // 导航栏滚动效果
+        window.addEventListener('scroll', function() {
+            const header = document.querySelector('header');
+            if (window.scrollY > 50) {
+                header.classList.add('py-2', 'shadow-md');
+                header.classList.remove('py-3', 'shadow-sm');
+            } else {
+                header.classList.add('py-3', 'shadow-sm');
+                header.classList.remove('py-2', 'shadow-md');
+            }
+        });
+
+        // 图表数据
+        document.addEventListener('DOMContentLoaded', function() {
+            // 播放量最高的10个视频条形图
+            const videoBarChart = new Chart(
+                document.getElementById('videoBarChart'),
+                {
+                    type: 'bar',
+                    data: {
+                        labels: [
+                            '《新媒体发展趋势解析》',
+                            '《短视频创作技巧分享》',
+                            '《社交媒体营销案例分析》',
+                            '《5G技术对传媒行业的影响》',
+                            '《内容创作的未来方向》',
+                            '《数字媒体的用户体验设计》',
+                            '《传媒行业数据分析方法》',
+                            '《网红经济与品牌合作》',
+                            '《新媒体平台运营策略》',
+                            '《AI在传媒领域的应用》'
+                        ],
+                        datasets: [{
+                            label: '播放量(万)',
+                            data: [3250, 2840, 2560, 2120, 1980, 1750, 1530, 1320, 1180, 960],
+                            backgroundColor: [
+                                'rgba(59, 130, 246, 0.8)',
+                                'rgba(59, 130, 246, 0.75)',
+                                'rgba(59, 130, 246, 0.7)',
+                                'rgba(59, 130, 246, 0.65)',
+                                'rgba(59, 130, 246, 0.6)',
+                                'rgba(59, 130, 246, 0.55)',
+                                'rgba(59, 130, 246, 0.5)',
+                                'rgba(59, 130, 246, 0.45)',
+                                'rgba(59, 130, 246, 0.4)',
+                                'rgba(59, 130, 246, 0.35)'
+                            ],
+                            borderColor: [
+                                'rgba(59, 130, 246, 1)',
+                                'rgba(59, 130, 246, 1)',
+                                'rgba(59, 130, 246, 1)',
+                                'rgba(59, 130, 246, 1)',
+                                'rgba(59, 130, 246, 1)',
+                                'rgba(59, 130, 246, 1)',
+                                'rgba(59, 130, 246, 1)',
+                                'rgba(59, 130, 246, 1)',
+                                'rgba(59, 130, 246, 1)',
+                                'rgba(59, 130, 246, 1)'
+                            ],
+                            borderWidth: 1,
+                            borderRadius: 6,
+                            barPercentage: 0.6,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                                padding: 10,
+                                titleFont: {
+                                    size: 14,
+                                    weight: 'bold'
+                                },
+                                bodyFont: {
+                                    size: 13
+                                },
+                                callbacks: {
+                                    label: function(context) {
+                                        return `播放量: ${context.raw}万`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: {
+                                    display: false
+                                },
+                                ticks: {
+                                    font: {
+                                        size: 11
+                                    },
+                                    maxRotation: 45,
+                                    minRotation: 45
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.05)'
+                                },
+                                ticks: {
+                                    callback: function(value) {
+                                        return value;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            );
+
+            // 情感分布饼图
+            const sentimentPieChart = new Chart(
+                document.getElementById('sentimentPieChart'),
+                {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['积极', '中性', '消极'],
+                        datasets: [{
+                            data: [65, 28, 7],
+                            backgroundColor: [
+                                'rgba(34, 197, 94, 0.8)',
+                                'rgba(148, 163, 184, 0.8)',
+                                'rgba(239, 68, 68, 0.8)'
+                            ],
+                            borderColor: [
+                                'rgba(34, 197, 94, 1)',
+                                'rgba(148, 163, 184, 1)',
+                                'rgba(239, 68, 68, 1)'
+                            ],
+                            borderWidth: 1,
+                            hoverOffset: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'right',
+                                labels: {
+                                    padding: 20,
+                                    font: {
+                                        size: 13
+                                    }
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                                padding: 10,
+                                titleFont: {
+                                    size: 14,
+                                    weight: 'bold'
+                                },
+                                bodyFont: {
+                                    size: 13
+                                },
+                                callbacks: {
+                                    label: function(context) {
+                                        const label = context.label || '';
+                                        const value = context.raw || 0;
+                                        const total = context.dataset.data.reduce((acc, val) => acc + val, 0);
+                                        const percentage = Math.round((value / total) * 100);
+                                        return `${label}: ${percentage}%`;
+                                    }
+                                }
+                            }
+                        },
+                        cutout: '65%'
+                    }
+                }
+            );
+
+            // 相关性热力图
+            const correlationHeatmap = new Chart(
+                document.getElementById('correlationHeatmap'),
+                {
+                    type: 'matrix',
+                    data: {
+                        datasets: [{
+                            label: '相关性矩阵',
+                            data: [
+                                { x: '播放量', y: '播放量', v: 1 },
+                                { x: '播放量', y: '点赞数', v: 0.85 },
+                                { x: '播放量', y: '评论数', v: 0.82 },
+                                { x: '播放量', y: '分享数', v: 0.78 },
+                                { x: '播放量', y: '收藏数', v: 0.65 },
+                                { x: '播放量', y: '情感得分', v: 0.31 },
+                                { x: '播放量', y: '视频时长', v: -0.42 },
+                                
+                                { x: '点赞数', y: '播放量', v: 0.85 },
+                                { x: '点赞数', y: '点赞数', v: 1 },
+                                { x: '点赞数', y: '评论数', v: 0.75 },
+                                { x: '点赞数', y: '分享数', v: 0.75 },
+                                { x: '点赞数', y: '收藏数', v: 0.88 },
+                                { x: '点赞数', y: '情感得分', v: 0.45 },
+                                { x: '点赞数', y: '视频时长', v: -0.35 },
+                                
+                                { x: '评论数', y: '播放量', v: 0.82 },
+                                { x: '评论数', y: '点赞数', v: 0.75 },
+                                { x: '评论数', y: '评论数', v: 1 },
+                                { x: '评论数', y: '分享数', v: 0.68 },
+                                { x: '评论数', y: '收藏数', v: 0.62 },
+                                { x: '评论数', y: '情感得分', v: 0.28 },
+                                { x: '评论数', y: '视频时长', v: -0.21 },
+                                
+                                { x: '分享数', y: '播放量', v: 0.78 },
+                                { x: '分享数', y: '点赞数', v: 0.75 },
+                                { x: '分享数', y: '评论数', v: 0.68 },
+                                { x: '分享数', y: '分享数', v: 1 },
+                                { x: '分享数', y: '收藏数', v: 0.65 },
+                                { x: '分享数', y: '情感得分', v: 0.38 },
+                                { x: '分享数', y: '视频时长', v: -0.25 },
+                                
+                                { x: '收藏数', y: '播放量', v: 0.65 },
+                                { x: '收藏数', y: '点赞数', v: 0.88 },
+                                { x: '收藏数', y: '评论数', v: 0.62 },
+                                { x: '收藏数', y: '分享数', v: 0.65 },
+                                { x: '收藏数', y: '收藏数', v: 1 },
+                                { x: '收藏数', y: '情感得分', v: 0.42 },
+                                { x: '收藏数', y: '视频时长', v: -0.32 },
+                                
+                                { x: '情感得分', y: '播放量', v: 0.31 },
+                                { x: '情感得分', y: '点赞数', v: 0.45 },
+                                { x: '情感得分', y: '评论数', v: 0.28 },
+                                { x: '情感得分', y: '分享数', v: 0.38 },
+                                { x: '情感得分', y: '收藏数', v: 0.42 },
+                                { x: '情感得分', y: '情感得分', v: 1 },
+                                { x: '情感得分', y: '视频时长', v: -0.15 },
+                                
+                                { x: '视频时长', y: '播放量', v: -0.42 },
+                                { x: '视频时长', y: '点赞数', v: -0.35 },
+                                { x: '视频时长', y: '评论数', v: -0.21 },
+                                { x: '视频时长', y: '分享数', v: -0.25 },
+                                { x: '视频时长', y: '收藏数', v: -0.32 },
+                                { x: '视频时长', y: '情感得分', v: -0.15 },
+                                { x: '视频时长', y: '视频时长', v: 1 }
+                            ],
+                            backgroundColor(context) {
+                                const value = context.dataset.data[context.dataIndex];
+                                const opacity = Math.abs(value.v);
+                                if (value.v > 0) {
+                                    return `rgba(34, 197, 94, ${opacity})`; // 绿色 - 正相关
+                                } else {
+                                    return `rgba(239, 68, 68, ${opacity})`; // 红色 - 负相关
+                                }
+                            },
+                            borderColor: 'white',
+                            borderWidth: 2,
+                            width: ({chart}) => (chart.chartArea || {}).width / 7 - 4,
+                            height: ({chart}) => (chart.chartArea || {}).height / 7 - 4,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                                padding: 10,
+                                titleFont: {
+                                    size: 14,
+                                    weight: 'bold'
+                                },
+                                bodyFont: {
+                                    size: 13
+                                },
+                                callbacks: {
+                                    title: function(context) {
+                                        const data = context[0].dataset.data[context[0].dataIndex];
+                                        return `${data.x} vs ${data.y}`;
+                                    },
+                                    label: function(context) {
+                                        const data = context.dataset.data[context.dataIndex];
+                                        return `相关系数: ${data.v.toFixed(2)}`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                type: 'category',
+                                position: 'bottom',
+                                ticks: {
+                                    font: {
+                                        size: 11
+                                    }
+                                },
+                                grid: {
+                                    display: false
+                                }
+                            },
+                            y: {
+                                type: 'category',
+                                position: 'left',
+                                ticks: {
+                                    font: {
+                                        size: 11
+                                    }
+                                },
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        }
+                    }
+                }
+            );
+
+            // 时间筛选器事件
+            document.getElementById('video-time-filter').addEventListener('change', function() {
+                const selectedValue = this.value;
+                let newData = [];
+                
+                // 根据选择更新数据
+                if (selectedValue === 'week') {
+                    newData = [1850, 1640, 1460, 1220, 1080, 950, 830, 720, 680, 560];
+                } else if (selectedValue === 'month') {
+                    newData = [3250, 2840, 2560, 2120, 1980, 1750, 1530, 1320, 1180, 960];
+                } else if (selectedValue === 'quarter') {
+                    newData = [5250, 4840, 4560, 4120, 3980, 3750, 3530, 3320, 3180, 2960];
+                } else if (selectedValue === 'year') {
+                    newData = [12250, 11840, 10560, 9120, 8980, 7750, 7530, 6320, 5180, 4960];
+                }
+                
+                // 更新图表数据
+                videoBarChart.data.datasets[0].data = newData;
+                videoBarChart.update();
+            });
+        });
+    </script>
+</body>
+</html>
